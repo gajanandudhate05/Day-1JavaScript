@@ -1,0 +1,197 @@
+
+<html>
+<head>
+    <title>Simple JavaScript Calculator</title>
+    <style>
+        /* Basic styling to center the calculator on the page */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f6f9;
+            margin: 0;
+        }
+/* Calculator frame */
+        .calculator {
+            background-color: #1e222b;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 320px;
+        }
+/* Output screen layout */
+        .display {
+            width: 100%;
+            height: 80px;
+            background-color: #2b313f;
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 2.5rem;
+            text-align: right;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            outline: none;
+        }
+/* Button grid configuration */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+/* Standard button styles */
+        button {
+            padding: 20px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: #3a4253;
+            color: #ffffff;
+            transition: background-color 0.1s ease;
+        }
+            button:hover {
+            background-color: #4a5468;
+        }
+/* Styling for operator buttons */
+        .operator {
+            background-color: #ff9f0a;
+            color: white;
+        }
+
+        .operator:hover {
+            background-color: #cc7f08;
+        }
+
+        /* Styling for Clear and Delete keys */
+        .utility {
+            background-color: #a5a5a5;
+            color: #000000;
+        }
+
+        .utility:hover {
+            background-color: #8e8e8e;
+        }
+
+        /* Equal button variant */
+        .equal {
+            background-color: #2ec4b6;
+            color: white;
+            grid-column: span 2; /* Extends across two grid blocks */
+        }
+
+        .equal:hover {
+            background-color: #259d92;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <!-- Display screen -->
+        <input type="text" class="display" id="display" readonly value="0">
+        
+        <!-- Button layout -->
+        <div class="buttons">
+            <button class="utility" onclick="clearDisplay()">C</button>
+            <button class="utility" onclick="deleteLast()">DEL</button>
+            <button class="operator" onclick="appendOperator('%')">%</button>
+            <button class="operator" onclick="appendOperator('/')">/</button>
+
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('*')">*</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">-</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button class="equal" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const display = document.getElementById('display');
+        let shouldResetDisplay = false;
+
+        // Adds characters or numbers to the current view
+        function appendNumber(number) {
+            if (display.value === '0' || shouldResetDisplay) {
+                resetScreen();
+            }
+            display.value += number;
+        }
+
+        function appendOperator(operator) {
+            if (shouldResetDisplay) shouldResetDisplay = false;
+            
+            // Prevent adding multiple operators in a row
+            const lastChar = display.value.slice(-1);
+            if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+                display.value = display.value.slice(0, -1) + operator;
+            } else {
+                display.value += operator;
+            }
+        }
+
+        // Empties the display back to zero
+        function clearDisplay() {
+            display.value = '0';
+        }
+
+        // Erases the single last character entered
+        function deleteLast() {
+            if (display.value.length > 1) {
+                display.value = display.value.slice(0, -1);
+            } else {
+                display.value = '0';
+            }
+        }
+
+        function resetScreen() {
+            display.value = '';
+            shouldResetDisplay = false;
+        }
+
+        // Processes and evaluates the mathematical expression safely
+        function calculate() {
+            try {
+                // Safeguard against incomplete operations at the tail end
+                let expression = display.value;
+                const lastChar = expression.slice(-1);
+                if (['+', '-', '*', '/'].includes(lastChar)) {
+                    expression = expression.slice(0, -1);
+                }
+
+                // Compute expression using Function constructor instead of direct unsafe eval()
+                const result = new Function(`return ${expression}`)();
+                
+                if (result === undefined || isNaN(result)) {
+                    display.value = 'Error';
+                } else if (!isFinite(result)) {
+                    display.value = 'Cannot divide by 0';
+                } else {
+                    // Limits decimal precision float overflow
+                    display.value = Number(result.toFixed(8)).toString(); 
+                }
+            } catch (error) {
+                display.value = 'Error';
+            }
+            shouldResetDisplay = true;
+        }
+    </script>
+</body>
+</html>
